@@ -1,7 +1,8 @@
 from django.shortcuts import render,HttpResponse,redirect,get_object_or_404
-from . models import Blogs, Category
+from . models import Blogs, Category, Comment
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django.http import HttpResponseRedirect
 
 
 def posts_by_category(request,category_id):
@@ -20,11 +21,28 @@ def posts_by_category(request,category_id):
     
     
     
+    
+    
+    
+    
+    
 #blogs
 def blogs(request,slug):
     single_post = get_object_or_404(Blogs, slug=slug, status='published')
+    #comment
+    if request.method=="POST":
+        comment = Comment()
+        comment.user = request.user
+        comment.blog = single_post
+        comment.comment = request.POST['comment']
+        comment.save()
+        return HttpResponseRedirect(request.path_info)
+    comments = Comment.objects.filter(blog = single_post)
+    comment_count = comments.count()
     context = {
-        'single_post':single_post
+        'single_post':single_post,
+        'comments':comments,
+        'comment_count':comment_count
     }
     return render(request, 'blogs.html', context)
 
@@ -39,4 +57,7 @@ def search(request):
         'keyword':keyword
     }
     return render(request, 'search.html',content)
-    
+
+
+
+
